@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+source base_clargs
+
+declare ROW_DELIM=$'\n'
+declare FIELD_DELIM=$'|'
+
+declare NAME_FIRST
+declare NAME_LAST
+declare EMAIL_FROM
+declare -a EMAIL_LIST
+
+declare OIFS="$IFS"
+IFS=$'\n'
+declare -a CLOPTS=(
+    # Deferred variable set with following argument
+    "f|NAME_FIRST|First name to use."
+    "l|NAME_LAST|Last name to use."
+    "e|EMAIL_FROM|Email account for sending email"
+    # Deferred function call with following argument
+    "a|+>add_email|Email address to send to.  Option can be called multiple times"
+    # Immediate variable set to 1, ignore following argument
+    "c|-COLORIZE|Set colorize flag on."
+    # Immediate function call with no arguments
+    "h|->bash_clargs_usage|Show Usage"
+    "s|->bash_clargs_show|Show argument settings"
+)
+IFS="$OIFS"
+
+
+add_email()
+{
+    echo "Adding email [32;1m$1[m to email list"
+    local -n list="EMAIL_LIST"
+    list+=("$1")
+}
+
+bash_clargs_process "$@"
+
+
+

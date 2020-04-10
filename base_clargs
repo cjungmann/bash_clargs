@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+
+BC_colon="[32;1m"
+
+bash_clargs_immediate_task() { [ "${1:0:1}" = '-' ]; }
+bash_clargs_function_task() { local re='^[-+>]{2}.*$'; [[ "$1" =~ $re ]]; }
+
+bash_clargs_usage()
+{
+    local IFS="$ROW_DELIM"
+    local row
+    local -a fields
+    local arg desc
+
+    for row in "${CLOPTS[@]}"; do
+        # Get row info
+        IFS="$FIELD_DELIM"
+        fields=( $row )
+        arg="${fields[0]}"
+        desc="${fields[2]}"
+
+        echo "${BC_colon}-${arg}[m: ${desc}"
+    done
+
+    echo
+}
+
+bash_clargs_set_var()
+{
+    local -n var="$1"
+    var="$2"
+}
+
+bash_clargs_show_var()
+{
+    local -n var="$1"
+    echo "${BC_colon}$1[m = ${BC_colon}$var[m"
+}
+
+bash_clargs_show()
+{
+    local IFS="$ROW_DELIM"
+    local row
+    local -a fields
+    local vname
+    local re='^-?(.*)$'
+
+    for row in "${CLOPTS[@]}"; do
+        # Get row info
+        IFS="$FIELD_DELIM"
+        fields=( $row )
+        vname="${fields[1]}"
+
+        if ! bash_clargs_function_task "$vname" ; then
+            if [[ "$vname" =~ $re ]]; then
+                bash_clargs_show_var "${BASH_REMATCH[1]}"
+            fi
+        fi
+    done
+
+    echo
+}
+
+bash_clargs_seek_opt_row()
+{
+    local opt="${1:1:1}"
+    local row
+    for row in "${CLOPTS[@]}"; do
+        if [ "${row:0:1}" = "$opt" ]; then
+            echo "$row"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+bash_clargs_process_task_deferred()
+{
+   local task="$1"
+    if [ "${task:1:1}" = '>' ]; then
+        "${task:2}" "$2"
+    else
+        bash_clargs_set_var "${task:1}" "$2"
+    fi
+}
+
+bash_clargs_process_task_immediate()
+{
+    local task="$1"
+    if [ "${task:1:1}" = '>' ]; then
+        "${task:2}"
+    else
+        bash_clargs_set_var "${task:1}" 1
+    fi
+
+}
+
+bash_clargs_process()
+{
+    local IFS="$FIELD_DELIM"
+    local arg
+
+    local opt_row
+    local -a opt_vals;
+
+    local task
+
+    for arg in "$@"; do
+        if [ "$task" ]; then
+            if [ "${task:0:2}" = '+>' ]; then
+                bash_clargs_process_task_deferred "$task" "$arg"
+            else
+                bash_clargs_set_var "$task" "$arg"
+            fi
+            task=
+        elif [ "${arg:0:1}" = '-' ]; then
+            if opt_row=$( bash_clargs_seek_opt_row "$arg" ); then
+                opt_vals=( $opt_row )
+                task="${opt_vals[1]}"
+                if bash_clargs_immediate_task "$task"; then
+                    bash_clargs_process_task_immediate "$task"
+                    task=
+                fi
+            else
+                echo "Unknown option ${BL_colon}$arg[m"
+                exit
+            fi
+        else
+            echo "Could be processing ordered arguments, not associated with an option"
+        fi
+    done
+
+    if [ "$task" ]; then
+        bash_clargs_process_task_immediate "$task"
+    fi
+}
+
+
