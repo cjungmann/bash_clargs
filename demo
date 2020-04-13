@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-source base_clargs
+source bash_clargs
 
 declare ROW_DELIM=$'\n'
 declare FIELD_DELIM=$'|'
