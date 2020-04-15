@@ -2,7 +2,6 @@
 
 source bash_clargs
 
-declare ROW_DELIM=$'\n'
 declare FIELD_DELIM=$'|'
 
 declare NAME_FIRST
