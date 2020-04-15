@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# In order to use this script, it must be included in another
+# BASH script using the "source" instruction, and the host
+# script must include an array named "CLOPTS" that defines the
+# option letter, option action, and a descriptive string for
+# each option.  See the "demo" script included with this file.
+
+# The other (optional) global variable is "FIELD_DELIM" that
+# separates the option letter, action, and string values in
+# "CLOPTS" elements.  A default value of '|' will be used if
+# it is not otherwise defined.
+
 BC_colon="[32;1m"
 
 bash_clargs_immediate_task() { [ "${1:0:1}" = '-' ]; }
@@ -7,14 +18,13 @@ bash_clargs_function_task() { local re='^[-+>]{2}.*$'; [[ "$1" =~ $re ]]; }
 
 bash_clargs_usage()
 {
-    local IFS="$ROW_DELIM"
+    local IFS="$FIELD_DELIM"
     local row
     local -a fields
     local arg desc
 
     for row in "${CLOPTS[@]}"; do
         # Get row info
-        IFS="$FIELD_DELIM"
         fields=( $row )
         arg="${fields[0]}"
         desc="${fields[2]}"
@@ -39,7 +49,7 @@ bash_clargs_show_var()
 
 bash_clargs_show()
 {
-    local IFS="$ROW_DELIM"
+    local IFS="$FIELD_DELIM"
     local row
     local -a fields
     local vname
@@ -98,6 +108,16 @@ bash_clargs_process_task_immediate()
 
 bash_clargs_process()
 {
+    if [ -z "$CLOPTS" ]; then
+        echo "Missing CLOPTS options info array." >&2
+        exit 1
+    fi
+
+    # Set default delimiter values if not already set:
+    if [ -z "$FIELD_DELIM" ]; then
+        FIELD_DELIM=$'|'
+    fi
+
     local IFS="$FIELD_DELIM"
     local arg
 
@@ -124,7 +144,7 @@ bash_clargs_process()
                 fi
             else
                 echo "Unknown option ${BL_colon}$arg[m"
-                exit
+                exit 1
             fi
         else
             echo "Could be processing ordered arguments, not associated with an option"
