@@ -124,6 +124,10 @@ bash_clargs_process()
     local opt_row
     local -a opt_vals;
 
+    # Option letter made available for called commands to
+    # help provide useful feedback for value errors.
+    local CUR_OPT
+
     local task
 
     for arg in "$@"; do
@@ -134,9 +138,11 @@ bash_clargs_process()
                 bash_clargs_set_var "$task" "$arg"
             fi
             task=
+            CUR_OPT=
         elif [ "${arg:0:1}" = '-' ]; then
             if opt_row=$( bash_clargs_seek_opt_row "$arg" ); then
                 opt_vals=( $opt_row )
+                CUR_OPT="${opt_vals[0]}"
                 task="${opt_vals[1]}"
                 if bash_clargs_immediate_task "$task"; then
                     bash_clargs_process_task_immediate "$task"
