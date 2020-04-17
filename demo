@@ -29,9 +29,13 @@ IFS="$OIFS"
 
 add_email()
 {
-    echo "Adding email [32;1m$1[m to email list"
-    local -n list="EMAIL_LIST"
-    list+=("$1")
+    if [ "$#" -eq 0 ]; then
+        echo "The -${CUR_OPT} option requires a value."
+    else
+        echo "Adding email [32;1m$1[m to email list"
+        local -n list="EMAIL_LIST"
+        list=("${list[@]}" "$1")
+    fi
 }
 
 bash_clargs_process "$@"
