@@ -11,6 +11,13 @@
 # "CLOPTS" elements.  A default value of '|' will be used if
 # it is not otherwise defined.
 
+# Second element prefixes dictate the actions taken:
+#
+# No prefix : variable name : set from argument following option
+# -         : variable name : set flag variable to 1
+# +>        : function name : call function using following option as function's argument
+# ->        : function name : call function without arguments
+
 BC_colon="[32;1m"
 
 bash_clargs_immediate_task() { [ "${1:0:1}" = '-' ]; }
