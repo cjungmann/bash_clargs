@@ -23,6 +23,7 @@ BC_colon="[32;1m"
 
 bash_clargs_immediate_task() { [ "${1:0:1}" = '-' ]; }
 bash_clargs_function_task() { local re='^[-+>]{2}.*$'; [[ "$1" =~ $re ]]; }
+bash_clargs_is_var_name() { local n="${1:0:1}"; ! ( [ "$n" = '-' ] || [ "$n" = '+' ] ); }
 
 
 # By default, this function shows the options and calls "exit"
@@ -34,15 +35,24 @@ bash_clargs_usage()
     local IFS="$FIELD_DELIM"
     local row
     local -a fields
-    local arg desc
+    local arg name desc
 
     for row in "${CLOPTS[@]}"; do
         # Get row info
         fields=( $row )
         arg="${fields[0]}"
+        name="${fields[1]}"
         desc="${fields[2]}"
 
-        echo "${BC_colon}-${arg}[m: ${desc}"
+        echo -n "  ${BC_colon}-${arg}[m: ${desc}"
+
+        if bash_clargs_is_var_name "$name"; then
+            local -n value="$name"
+            if [ "$value" ]; then
+                echo -n " (def [33;1m$value[m)"
+            fi
+        fi
+        echo
     done
 
     echo
