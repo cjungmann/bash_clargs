@@ -1,28 +1,34 @@
 #!/usr/bin/env bash
 
-# In order to use this script, it must be included in another
-# BASH script using the "source" instruction, and the host
-# script must include an array named "CLOPTS" that defines the
-# option letter, option action, and a descriptive string for
-# each option.  See the "demo" script included with this file.
-
-# The other (optional) global variable is "FIELD_DELIM" that
-# separates the option letter, action, and string values in
-# "CLOPTS" elements.  A default value of '|' will be used if
-# it is not otherwise defined.
-
-# Second element prefixes dictate the actions taken:
+# CLOPTS is a required array of option descriptions.  See "demo"
 #
-# No prefix : variable name : set from argument following option
-# -         : variable name : set flag variable to 1
-# +>        : function name : call function using following option as function's argument
-# ->        : function name : call function without arguments
+# FIELD_DELIM will be used as IFS to break CLOPTS lines.  Its
+#    default value is '|'
+
+# The second field of a CLOPTS line dictates the option action:
+#    No prefix : variable name : set from argument following option
+#    -         : variable name : set flag variable to 1
+#    +>        : function name : call function using following option as function's argument
+#    ->        : function name : call function without arguments
+#
+# bash_clargs_process() is the primary function.  Call it in global
+#    scope like this:
+#    bash_clargs_process "$@"
+#
+# bash_clargs_usage() can be used to display basic option documentation.
+#
+# bash_clargs_show() shows values in the CLOPTS definition
 
 BC_colon="[32;1m"
 
 bash_clargs_immediate_task() { [ "${1:0:1}" = '-' ]; }
 bash_clargs_function_task() { local re='^[-+>]{2}.*$'; [[ "$1" =~ $re ]]; }
 
+
+# By default, this function shows the options and calls "exit"
+# to terminate the script.  Add any parameter to bypass the
+# exit.  One might do this if bash_clargs_usage() is used within
+# a usage display with a larger scope.
 bash_clargs_usage()
 {
     local IFS="$FIELD_DELIM"
@@ -40,6 +46,10 @@ bash_clargs_usage()
     done
 
     echo
+
+    if [ "$#" -eq 0 ]; then
+        exit 0
+    fi
 }
 
 bash_clargs_set_var()
